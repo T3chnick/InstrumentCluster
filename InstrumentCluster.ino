@@ -23,17 +23,19 @@ Adafruit_SH1106 dl(-1);
 Adafruit_SH1106 dr(-1);
 Adafruit_SH1106 display(47, -1, 49);
 boolean DisplayST;
-uint16_t DispPage = 3;
+int16_t DispPage = 3;
 uint32_t lDispTimer, cDispTimer, rDispTimer;
 
 //Analog buttons routines//
 #define wkL_pin  A1                        // input from left key block on steering wheel
 #define wkR_pin  A0                        // input from right key block on steering wheel
-volatile uint8_t avg = 10;                 //    
+uint8_t avg = 10;                          //    
 #define key1 526                           //analog value for resistive key
 #define key2 693                           //analog value for resistive key
 #define key3 780                           //analog value for resistive key
 #define key4 826                           //analog value for resistive key
+#define btuppin      8       
+#define btdnpin      7      
 uint8_t  flagL, flagR;                     // Debounce function for key block on steering wheel
 uint32_t eventR, eventL;                   // Timer for key block on steering wheel
 
@@ -57,23 +59,35 @@ float trip;
 uint64_t  StarterTime;
 uint32_t  lastWork;        
 uint8_t   statusEngine=0;  
-boolean   StopIsPress, cLock, stateIgn = false, stateACC = false; 
+bool    cLock, stateIgn = false, stateACC = false; 
 #define TrunkPin      22       //-->выход на багажник
 #define ClosePin      23       //-->выход на цз
 #define DoorPin       50       //<--Вход с концевика двери
-#define StopPin       25       //<--Вход с тормоза
-#define IgnPin        27       //-->Выход на зажигание 
-#define ACCPin        28       //-->Выход на ACC 
-#define StarterPin    90       //-->Выход на стартера          
-#define Yled          14       //-->Выход на глазок Y 
-#define Gled          15       //-->Выход на глазок G 
-#define Wled          16       //-->Выход на подсветку кнопки  
-#define SSButtPin     17       //<--Вход с кнопки 
+#define BrakePin      24       //<--Вход с тормоза
+#define ClutchPin     24       //<--Вход с тормоза
+#define IgnPin        25       //-->Выход на зажигание 
+#define ACCPin        26       //-->Выход на ACC 
+#define StarterPin    97       //-->Выход на стартера          
+#define Yled          28       //-->Выход на глазок Y 
+#define Gled          29       //-->Выход на глазок G 
+#define Wled          30       //-->Выход на подсветку кнопки  
+#define SSButtPin     31       //<--Вход с кнопки 
 GButton ssButt(SSButtPin);
+
+// CruiseControl routines
+#include <Servo.h>
+Servo CCservo; 
+uint8_t CCstatus, CCspeedSet, CClastSpeed;
+#define CCservoPin    32 
+#define CCkeyPin      A2
+#define accel  1
+#define decel  1
+#define cancel 1
+#define reset  1
 
 // other
 GButton butt1(53);
-uint32_t cyclCount;
+uint32_t btKeyTime, btKeyDelay;
 //odometrPulses = 11638450000;
 
 void setup() {
@@ -83,20 +97,23 @@ void setup() {
   initDisplays();
   SetupButtons();  
   SetInterrupts();
+  CCservo.attach(CCservoPin);
 }
 
 void loop() {
+  // digitalWrite(btuppin,HIGH);
+  //  digitalWrite(btdnpin,LOW);
 
-  if (digitalRead(8) || !digitalRead(DoorPin) ) {
+  if (digitalRead(9) || !digitalRead(DoorPin) ) {
     ControlStartStop();
     CheckButt();  
-    UpdDisplays();   
+    UpdDisplays();  
+    if (millis()-EEtime > 60000) {eeprom.eeprom_write(0, odometrPulses);  EEtime=millis(); } 
   }
   else { if(DisplayST) {DisplaysOFF();}}
 
   ResSpThCount();
 
-    if (millis()-EEtime > 60000) {eeprom.eeprom_write(0, odometrPulses);  EEtime=millis(); }
-cyclCount++;
+    
 }
 

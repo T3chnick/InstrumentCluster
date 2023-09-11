@@ -1,6 +1,6 @@
 void setupSSpins(){ 
   pinMode(SSButtPin, INPUT_PULLUP);
-  pinMode(StopPin,INPUT_PULLUP); 
+  pinMode(BrakePin,INPUT); 
   pinMode(IgnPin, OUTPUT); 
   pinMode(StarterPin, OUTPUT); 
   pinMode(ACCPin, OUTPUT); 
@@ -10,20 +10,20 @@ void setupSSpins(){
 } 
 
 void ControlStartStop(void){
-    StopIsPress = !digitalRead(StopPin); 
+    bool Clutch = digitalRead(BrakePin); 
 
  switch (statusEngine) {
      
  case 0: //acc and ign switch || start
-  if(cLock) {StopAll(); break;} 
-  if(ssButt.isSingle()) { if(StopIsPress) { StartStarter(); } else { StartACC(); statusEngine=4; }}
+  if(cLock) { StopAll(); break; } 
+  if(ssButt.isSingle()) { if(Clutch) { StartStarter(); } else { StartACC(); statusEngine=4; }}
   if(ssButt.isHolded()) { StartIgn(); statusEngine=3; } 
   if (th > 300 ) {statusEngine=2; StartACC();}
  break; 
 //----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- 
  case 1: // Starter work
    if (th>400) { StopStarter(); StartACC(); statusEngine=2; } 
-   if (ssButt.isSingle() || millis() - StarterTime > 9000 || !StopIsPress) { StopStarter(); statusEngine=3; } 
+   if (ssButt.isSingle() || millis() - StarterTime > 9000 || !Clutch) { StopStarter(); statusEngine=3; } 
  break; 
  //----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- 
  case 2: // Engine work
@@ -34,12 +34,12 @@ void ControlStartStop(void){
  //----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- 
  case 3: // Work fail or Cancel starter 
    if (th > 300 ) {statusEngine=2; StartACC();}
-   if (ssButt.isSingle()) { (StopIsPress) ? StartStarter() : StopAll(); }
+   if (ssButt.isSingle()) { (Clutch) ? StartStarter() : StopAll(); }
    if (ssButt.isHolded()) { StopAll(); } 
  break; 
  //----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- 
  case 4: //Engine off acc on
-   if (ssButt.isSingle()) { (StopIsPress) ? StartStarter() : StopAll(); }
+   if (ssButt.isSingle()) { (Clutch) ? StartStarter() : StopAll(); }
  break; 
  }
 }

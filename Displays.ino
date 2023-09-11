@@ -17,7 +17,7 @@ const unsigned char cruise [] PROGMEM = {
 };
 
 void UpdDisplays() { if(!DisplayST) {initDisplays();}
-  if (millis()-lDispTimer > 200) { lDispUpd(); lDispTimer=millis(); }
+  if (millis()-lDispTimer > 10) { lDispUpd(); lDispTimer=millis(); }
   if (millis()-rDispTimer > 500) { rDispUpd(); rDispTimer=millis(); }
 
 
@@ -29,15 +29,15 @@ void lDispUpd(){
   dl.setFont(&FreeSans18pt7b);
   odometr = odometrPulses/24000;
   trip = (odometrPulses - tripreset)/24000.0;
-
+  DispPage = constrain(DispPage,0,7);
   switch (DispPage){
     case 0: {  dl.print(th); dl.setFont(); dl.setCursor(110,13); dl.println("th"); break; }
     case 1: {  dl.print(sp); dl.setFont(); dl.setCursor(110,13); dl.println("sp"); break; }
     case 2: {  dl.print(trip,1); dl.setFont(); dl.setCursor(110,13); dl.println("tr");break; }
     case 3: {  dl.print(odometr); dl.setFont(); dl.setCursor(110,13); dl.println("od");break; }
     case 4: {  dl.print(digitalRead(10)); dl.setFont(); dl.setCursor(110,13); dl.println("ge"); break; }
-    case 5: {  dl.print(cyclCount); dl.setFont(); dl.setCursor(110,13); dl.println("cy"); cyclCount = 0; break; }
-    case 6: {  dl.print(digitalRead(8)); dl.setFont(); dl.setCursor(110,13); dl.println("ig"); break; }
+    case 5: {  dl.print(flagR); dl.setFont(); dl.setCursor(110,13); dl.println("kr"); break; }
+    case 6: {  dl.print(digitalRead(9)); dl.setFont(); dl.setCursor(110,13); dl.println("ig"); break; }
     case 7: {  dl.print(statusEngine); dl.setFont(); dl.setCursor(105,13); dl.println("ste"); break;   }
   }
     dl.display(); 
@@ -65,6 +65,7 @@ void DisplaysOFF() {
   
   dl.clearDisplay(); dl.display(); 
   dr.clearDisplay(); dr.display(); 
+  eeprom.eeprom_write(0, odometrPulses);
   DisplayST=0;
 }
 
