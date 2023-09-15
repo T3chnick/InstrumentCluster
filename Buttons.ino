@@ -1,10 +1,7 @@
 void CheckButt() {
   ssButt.tick(); butt1.tick(); 
-  if (butt1.isClick()) { DispPage++;  lDispUpd(); if (DispPage > 7)  DispPage = 0;} 
-  if (butt1.isHold()) { tripreset = odometrPulses; DispPage = 2; 
-  eeprom.eeprom_write(10, tripreset); 
-  eeprom.eeprom_write(0, odometrPulses);
-  }
+  if (butt1.isClick()) { DispSubPage++;  } 
+
   wkl(); wkr();
 }
 
@@ -12,10 +9,10 @@ void CheckButt() {
 void wkl(void){ ///// Steering wheel left block /////
   uint16_t wkl = analogRead(wkL_pin);
   if(wkl>1000) {eventL=millis();
-         if(flagL == 2) { flagL = 0; } 
-    else if(flagL == 4) { flagL = 0; }
-    else if(flagL == 5) { DispPage++; flagL = 0; lDispUpd(); }
-    else if(flagL == 6) { DispPage--; flagL = 0; lDispUpd(); }
+         if(flagL == 2) { DispSubPage++; flagL = 0; cDispUpd(); }
+    else if(flagL == 4) { DispSubPage--; flagL = 0; cDispUpd(); }
+    else if(flagL == 5) { DispPage++; flagL = 0; cDispUpd(); }
+    else if(flagL == 6) { DispPage--; flagL = 0; cDispUpd(); }
   }
   else if(millis()-eventL > 10 ) {
          if(key(wkl,key1)) { flagL = 2; } //next

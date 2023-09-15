@@ -16,7 +16,7 @@ void CruiseControl(){
       break;
 
     case 3: //CC on
-      if(Brake || Clutch) { CCstatus=3; CCservo.write(0); break; }
+      if(Brake || Clutch) { CCstatus=1; CCservo.write(0); break; }
       
       break;
 

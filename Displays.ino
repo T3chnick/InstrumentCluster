@@ -17,29 +17,64 @@ const unsigned char cruise [] PROGMEM = {
 };
 
 void UpdDisplays() { if(!DisplayST) {initDisplays();}
-  if (millis()-lDispTimer > 10) { lDispUpd(); lDispTimer=millis(); }
+  if (millis()-lDispTimer > 50) { lDispUpd(); lDispTimer=millis(); }
   if (millis()-rDispTimer > 500) { rDispUpd(); rDispTimer=millis(); }
-
+  if (millis()-cDispTimer > 100) { cDispUpd(); cDispTimer=millis(); }
 
 }
+void cDispUpd(){ DispPage = constrain(DispPage,0,7);
+  display.clearDisplay();
+  if (DispSubPage > SubPageMax) { DispSubPage = 0; } else if (DispSubPage < 0)  { DispSubPage = SubPageMax; }
+  
+  switch(DispPage) { 
+
+    case 0: { SubPageMax = 3; switch(DispSubPage) { 
+
+        case 0: { // odometr
+        PrintMsgF(56,31,"km");        
+        display.setFont(&Seven_Segment9pt7b);
+        display.setCursor(getXtrip(),25); display.print(trip,1);
+        display.setCursor(35,56); display.print(odometr);
+        if (butt1.isHold()) { tripreset = odometrPulses; SaveKm(); }
+        }break;
+      
+        case 1: {  // speed
+        PrintMsgF(47,11,"SPEED");
+        display.setFont(&digits18pt7b); display.setCursor(getXsp(),55); display.print(Speed(),0); 
+        } break;
+
+        case 2: { //Service A
+        PrintMsgF(37,11,"SERVICE A");
+        display.setFont(&Seven_Segment9pt7b); display.setCursor(46,40); display.print(ServiceA);
+        PrintMsgF(17,51,"hold R to reset");
+        if (butt1.isHold()) { serviceAreset = odometr; SaveKm(); }
+        } break;
+
+        case 3: { // ServiceB
+        PrintMsgF(37,11,"SERVICE B");
+        display.setFont(&Seven_Segment9pt7b); display.setCursor(43,40); display.print(ServiceB);
+        PrintMsgF(17,51,"hold R to reset");
+        if (butt1.isHold()) { serviceBreset = odometr; SaveKm(); }
+        } break;
+
+
+      }
+    
+    }break;
+
+    case 1:{} break;
+
+    case 2:{} break;
+
+  }
+
+  display.display();
+}//SP//100=32// 10=42// 1=52
 
 void lDispUpd(){ 
   dl.clearDisplay();
-  dl.setCursor(0,39);
-  dl.setFont(&FreeSans18pt7b);
-  odometr = odometrPulses/24000;
-  trip = (odometrPulses - tripreset)/24000.0;
-  DispPage = constrain(DispPage,0,7);
-  switch (DispPage){
-    case 0: {  dl.print(th); dl.setFont(); dl.setCursor(110,13); dl.println("th"); break; }
-    case 1: {  dl.print(sp); dl.setFont(); dl.setCursor(110,13); dl.println("sp"); break; }
-    case 2: {  dl.print(trip,1); dl.setFont(); dl.setCursor(110,13); dl.println("tr");break; }
-    case 3: {  dl.print(odometr); dl.setFont(); dl.setCursor(110,13); dl.println("od");break; }
-    case 4: {  dl.print(digitalRead(10)); dl.setFont(); dl.setCursor(110,13); dl.println("ge"); break; }
-    case 5: {  dl.print(flagR); dl.setFont(); dl.setCursor(110,13); dl.println("kr"); break; }
-    case 6: {  dl.print(digitalRead(9)); dl.setFont(); dl.setCursor(110,13); dl.println("ig"); break; }
-    case 7: {  dl.print(statusEngine); dl.setFont(); dl.setCursor(105,13); dl.println("ste"); break;   }
-  }
+  dl.setFont(); dl.setCursor(110,13); dl.print("th");
+  dl.setFont(&FreeSans18pt7b); dl.setCursor(0,42); dl.print(Taho()); 
     dl.display(); 
 }
 
@@ -56,8 +91,10 @@ void rDispUpd(){
 }
 
 void initDisplays() {
+  display.begin(SH1106_SWITCHCAPVCC);  display.clearDisplay(); display.setTextColor(WHITE);  display.display(); cDispUpd(); 
   dl.begin(SH1106_SWITCHCAPVCC, 0x3C); dl.clearDisplay(); dl.display(); dl.setTextColor(WHITE); dl.setFont(&FreeSans24pt7b); lDispUpd();
   dr.begin(SH1106_SWITCHCAPVCC, 0x3D); dr.clearDisplay(); dr.display(); dr.setTextColor(WHITE); dr.setFont(&FreeSans24pt7b); rDispUpd(); 
+  
   DisplayST=1;
 }
 
@@ -65,9 +102,17 @@ void DisplaysOFF() {
   
   dl.clearDisplay(); dl.display(); 
   dr.clearDisplay(); dr.display(); 
+  display.clearDisplay(); display.display();
   eeprom.eeprom_write(0, odometrPulses);
   DisplayST=0;
 }
+
+void PrintMsgF(uint8_t x, uint8_t y, const char *msg){
+      display.setFont();
+      display.setCursor(x,y);
+      display.print(msg);
+}
+
 
 void settime() {
    //setRTC.setClockMode(false);  // set to 24h

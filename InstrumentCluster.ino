@@ -17,13 +17,15 @@ boolean clock2dot;
 #include <Adafruit_GFX.h>
 #include <Adafruit_SH1106.h>
 #include <Adafruit_SSD1306.h>
+#include <fonts/Seven_Segment9pt7b.h>
+#include <fonts/digits18pt7b.h>
 #include <fonts/FreeSans18pt7b.h>
 #include <fonts/FreeSans24pt7b.h>
 Adafruit_SH1106 dl(-1);
 Adafruit_SH1106 dr(-1);
-Adafruit_SH1106 display(47, -1, 49);
+Adafruit_SH1106 display(4, 6, 5);
 boolean DisplayST;
-int16_t DispPage = 3;
+int8_t DispPage, DispSubPage, SubPageMax = 10;
 uint32_t lDispTimer, cDispTimer, rDispTimer;
 
 //Analog buttons routines//
@@ -48,12 +50,13 @@ volatile boolean     tt        = false;     //trigger
 //Speed & km routines
 volatile uint32_t    micros_sp = 0;        //pulse time
 volatile uint64_t    sz = 0;               //counter
-volatile uint16_t    sp = 0;               //Speed
+volatile float       sp = 0;               //Speed
 volatile boolean     st = false;           //trigger
 volatile uint64_t    odometrPulses;
-uint64_t servicereset, tripreset;
-uint32_t odometr, toService;
-float trip;
+uint64_t  tripreset;
+int32_t odometr, ServiceA, ServiceB, serviceAreset, serviceBreset, ServiceAinterval = 5000, ServiceBinterval = 10000;
+float SpAvg[20], ThAvg[20], trip;
+uint8_t saveSpeedPos, saveTahoPos;
 
 //StartStop routines
 uint64_t  StarterTime;
@@ -93,6 +96,7 @@ uint32_t btKeyTime, btKeyDelay;
 void setup() {
   Wire.begin();
   ReadEEprom();
+  UpdKM();
   setupSSpins();
   initDisplays();
   SetupButtons();  
@@ -106,6 +110,7 @@ void loop() {
 
   if (digitalRead(9) || !digitalRead(DoorPin) ) {
     ControlStartStop();
+    UpdKM();
     CheckButt();  
     UpdDisplays();  
     if (millis()-EEtime > 60000) {eeprom.eeprom_write(0, odometrPulses);  EEtime=millis(); } 
@@ -114,6 +119,5 @@ void loop() {
 
   ResSpThCount();
 
-    
 }
 
