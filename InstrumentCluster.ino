@@ -11,12 +11,11 @@ uint32_t EEtime;
 #include <DS3231.h>
 RTClib myRTC;
 DS3231 setRTC;
-boolean clock2dot;
+bool clock2dot;
 
 // Display routines //
 #include <Adafruit_GFX.h>
 #include <Adafruit_SH1106.h>
-#include <Adafruit_SSD1306.h>
 #include <fonts/Seven_Segment9pt7b.h>
 #include <fonts/digits18pt7b.h>
 #include <fonts/FreeSans18pt7b.h>
@@ -24,8 +23,9 @@ boolean clock2dot;
 Adafruit_SH1106 dl(-1);
 Adafruit_SH1106 dr(-1);
 Adafruit_SH1106 display(4, 6, 5);
-boolean DisplayST;
+bool DisplayST;
 int8_t DispPage, DispSubPage, SubPageMax = 10;
+uint16_t cDispInterval;
 uint32_t lDispTimer, cDispTimer, rDispTimer;
 
 //Analog buttons routines//
@@ -37,7 +37,8 @@ uint8_t avg = 10;                          //
 #define key3 780                           //analog value for resistive key
 #define key4 826                           //analog value for resistive key
 #define btuppin      8       
-#define btdnpin      7      
+#define btdnpin      7 
+bool VolButtBusy, keyPlus, keyMinus;     
 uint8_t  flagL, flagR;                     // Debounce function for key block on steering wheel
 uint32_t eventR, eventL;                   // Timer for key block on steering wheel
 
@@ -45,24 +46,23 @@ uint32_t eventR, eventL;                   // Timer for key block on steering wh
 volatile uint32_t    micros_th = 0;         //pulse time
 volatile uint64_t    tz        = 0;         //counter
 volatile uint16_t    th        = 0;         //rpm
-volatile boolean     tt        = false;     //trigger 
+volatile bool        tt        = false;     //trigger 
 
 //Speed & km routines
 volatile uint32_t    micros_sp = 0;        //pulse time
 volatile uint64_t    sz = 0;               //counter
 volatile float       sp = 0;               //Speed
-volatile boolean     st = false;           //trigger
+volatile bool        st = false;           //trigger
 volatile uint64_t    odometrPulses;
-uint64_t  tripreset;
-int32_t odometr, ServiceA, ServiceB, serviceAreset, serviceBreset, ServiceAinterval = 5000, ServiceBinterval = 10000;
-float SpAvg[20], ThAvg[20], trip;
-uint8_t saveSpeedPos, saveTahoPos;
+volatile uint64_t  tripreset;
+volatile int32_t odometr, ServiceA, ServiceB, serviceAreset, serviceBreset, ServiceAinterval = 5000, ServiceBinterval = 10000;
+volatile float SpAvg[20], trip;
+volatile uint8_t saveSpeedPos;
 
-//StartStop routines
-uint64_t  StarterTime;
-uint32_t  lastWork;        
-uint8_t   statusEngine=0;  
-bool    cLock, stateIgn = false, stateACC = false; 
+//StartStop routines 
+uint32_t lastWork, StarterTime;      
+uint8_t  statusEngine;  
+bool     cLock, stateIgn, stateACC; 
 #define TrunkPin      22       //-->выход на багажник
 #define ClosePin      23       //-->выход на цз
 #define DoorPin       50       //<--Вход с концевика двери
@@ -80,7 +80,10 @@ GButton ssButt(SSButtPin);
 // CruiseControl routines
 #include <Servo.h>
 Servo CCservo; 
-uint8_t CCstatus, CCspeedSet, CClastSpeed;
+float CCTargetSp, PreviousSpeed;
+uint8_t throttle, CCstatus;
+float   diff_H=3.0, diff_M=1.5, diff_L=0.5, 
+uint8_t react_H=3, react_M=2, react_L=1;
 #define CCservoPin    32 
 #define CCkeyPin      A2
 #define accel  1
@@ -88,13 +91,15 @@ uint8_t CCstatus, CCspeedSet, CClastSpeed;
 #define cancel 1
 #define reset  1
 
+
+
 // other
-GButton butt1(53);
+GButton buttR(53);
 uint32_t btKeyTime, btKeyDelay;
 //odometrPulses = 11638450000;
 
 void setup() {
-  Wire.begin();
+  Wire.begin(); //settime();
   ReadEEprom();
   UpdKM();
   setupSSpins();
@@ -102,11 +107,12 @@ void setup() {
   SetupButtons();  
   SetInterrupts();
   CCservo.attach(CCservoPin);
+
 }
 
 void loop() {
-  // digitalWrite(btuppin,HIGH);
-  //  digitalWrite(btdnpin,LOW);
+
+
 
   if (digitalRead(9) || !digitalRead(DoorPin) ) {
     ControlStartStop();
@@ -114,8 +120,8 @@ void loop() {
     CheckButt();  
     UpdDisplays();  
     if (millis()-EEtime > 60000) {eeprom.eeprom_write(0, odometrPulses);  EEtime=millis(); } 
-  }
-  else { if(DisplayST) {DisplaysOFF();}}
+  } else { if(DisplayST) {DisplaysOFF();}}
+ 
 
   ResSpThCount();
 

@@ -1,99 +1,118 @@
-const unsigned char cruise [] PROGMEM = {
-	// 'cruise, 36x42px
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00, 0x03, 0xe0, 0x00, 0x00, 0x00, 0x03, 
-	0xe0, 0x00, 0x00, 0x00, 0x03, 0xf8, 0x00, 0x00, 0x00, 0x01, 0xf0, 0x00, 0x00, 0x00, 0x03, 0xf0, 
-	0x00, 0x00, 0x00, 0x01, 0xe0, 0x00, 0x00, 0x00, 0x00, 0x60, 0x00, 0x00, 0x00, 0x00, 0x03, 0xfc, 
-	0x00, 0x00, 0x00, 0x1f, 0xff, 0x80, 0x00, 0x00, 0x7e, 0x67, 0xe0, 0x00, 0x01, 0xf0, 0x60, 0xf8, 
-	0x00, 0x03, 0xc0, 0x60, 0x3c, 0x00, 0x07, 0x00, 0x60, 0x0e, 0x00, 0x0f, 0x00, 0x00, 0x0f, 0x00, 
-	0x1f, 0x80, 0x00, 0x1f, 0x80, 0x19, 0xc6, 0x00, 0x3d, 0x80, 0x39, 0x87, 0x00, 0x19, 0xc0, 0x30, 
-	0x03, 0x00, 0x00, 0xc0, 0x60, 0x03, 0x00, 0x00, 0x60, 0x60, 0x01, 0x80, 0x00, 0x60, 0x60, 0x01, 
-	0x80, 0x00, 0x70, 0xc0, 0x01, 0xc0, 0x00, 0x30, 0xc0, 0x00, 0xc0, 0x00, 0x30, 0xc0, 0x00, 0xe0, 
-	0x00, 0x30, 0xe8, 0x00, 0xf0, 0x01, 0x70, 0xfc, 0x00, 0xf0, 0x01, 0xf0, 0xf8, 0x00, 0xf0, 0x01, 
-	0xf0, 0xc0, 0x00, 0x60, 0x00, 0x30, 0xc0, 0x00, 0x00, 0x00, 0x30, 0xe0, 0x00, 0x00, 0x00, 0x70, 
-	0x60, 0x00, 0x00, 0x00, 0x60, 0x60, 0x00, 0x00, 0x00, 0x60, 0x70, 0x00, 0x00, 0x00, 0xe0, 0x30, 
-	0x00, 0x00, 0x00, 0xc0, 0x39, 0x80, 0x00, 0x19, 0xc0, 0x1d, 0xc0, 0x00, 0x3b, 0x80, 0x0f, 0x80, 
-	0x00, 0x1f, 0x00, 0x07, 0x00, 0x00, 0x0e, 0x00, 0x02, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 
-	0x00, 0x00
-};
 
 void UpdDisplays() { if(!DisplayST) {initDisplays();}
-  if (millis()-lDispTimer > 50) { lDispUpd(); lDispTimer=millis(); }
-  if (millis()-rDispTimer > 500) { rDispUpd(); rDispTimer=millis(); }
-  if (millis()-cDispTimer > 100) { cDispUpd(); cDispTimer=millis(); }
+  if (millis()-lDispTimer > 200) { lDispUpd(); lDispTimer=millis(); }
+  if (millis()-rDispTimer > 1000) { rDispUpd(); rDispTimer=millis(); }
+  if (millis()-cDispTimer > cDispInterval) { cDispUpd(); cDispTimer=millis(); }
 
 }
-void cDispUpd(){ DispPage = constrain(DispPage,0,7);
+void cDispUpd(){ 
+  DispPage = constrain(DispPage,0,1);
+  DispSubPage = constrain(DispSubPage,0,SubPageMax);
   display.clearDisplay();
-  if (DispSubPage > SubPageMax) { DispSubPage = 0; } else if (DispSubPage < 0)  { DispSubPage = SubPageMax; }
   
   switch(DispPage) { 
 
-    case 0: { SubPageMax = 3; switch(DispSubPage) { 
+    case 0: { SubPageMax = 3;  VolButtBusy = 0;
+      switch(DispSubPage) {
 
-        case 0: { // odometr
-        PrintMsgF(56,31,"km");        
-        display.setFont(&Seven_Segment9pt7b);
-        display.setCursor(getXtrip(),25); display.print(trip,1);
-        display.setCursor(35,56); display.print(odometr);
-        if (butt1.isHold()) { tripreset = odometrPulses; SaveKm(); }
+        case 0: { cDispInterval = 500;// odometr 
+          PrintMsgF(56,31,"KM");        
+          display.setFont(&Seven_Segment9pt7b);
+          display.setCursor(getXtrip(),25); display.print(trip,1);
+          display.setCursor(35,56); display.print(odometr);
+          if (buttR.isHold()) { tripreset = odometrPulses; SaveKm(); }
         }break;
       
-        case 1: {  // speed
-        PrintMsgF(47,11,"SPEED");
-        display.setFont(&digits18pt7b); display.setCursor(getXsp(),55); display.print(Speed(),0); 
+        case 1: {  cDispInterval = 150;// speed
+          PrintMsgF(47,11,"SPEED");
+          float temSp = Speed();
+          display.setFont(&digits18pt7b); display.setCursor(getXsp(temSp),55); display.print(temSp,0); 
         } break;
 
-        case 2: { //Service A
-        PrintMsgF(37,11,"SERVICE A");
-        display.setFont(&Seven_Segment9pt7b); display.setCursor(46,40); display.print(ServiceA);
-        PrintMsgF(17,51,"hold R to reset");
-        if (butt1.isHold()) { serviceAreset = odometr; SaveKm(); }
+        case 2: { cDispInterval = 500; //Service A
+          PrintMsgF(37,11,"SERVICE A");
+          display.setFont(&Seven_Segment9pt7b); display.setCursor(43,40); display.print(ServiceA);
+          PrintMsgF(17,51,"hold R to reset");
+          if (buttR.isHold()) { serviceAreset = odometr; SaveKm(); }
         } break;
 
-        case 3: { // ServiceB
-        PrintMsgF(37,11,"SERVICE B");
-        display.setFont(&Seven_Segment9pt7b); display.setCursor(43,40); display.print(ServiceB);
-        PrintMsgF(17,51,"hold R to reset");
-        if (butt1.isHold()) { serviceBreset = odometr; SaveKm(); }
+        case 3: {  cDispInterval = 500;  // ServiceB
+          PrintMsgF(37,11,"SERVICE B");
+          display.setFont(&Seven_Segment9pt7b); display.setCursor(43,40); display.print(ServiceB);
+          PrintMsgF(17,51,"hold R to reset");
+          if (buttR.isHold()) { serviceBreset = odometr; SaveKm(); }
         } break;
-
-
-      }
-    
+      }    
     }break;
 
-    case 1:{} break;
 
-    case 2:{} break;
+
+    case 1:{  SubPageMax = 1;  VolButtBusy = 1;  cDispInterval = 100;//set clock
+      PrintMsgF(35,11,"SET CLOCK");
+      DateTime now = myRTC.now();
+      int H = now.hour();
+      int M = now.minute();
+      PrintMsgF(30,28,"HOUR");  PrintMsgN(83,28,H);
+      PrintMsgF(30,44,"MINUTE"); PrintMsgN(83,44,M);
+
+      switch(DispSubPage) {
+        
+        case 0:{
+          display.drawRect(24,24,76,15,WHITE);
+            if(keyPlus) { H++; if(H > 23) {H = 0;} setRTC.setHour(H); keyPlus = 0;}
+            else if(keyMinus) { H--; if(H < 0) {H = 23;} setRTC.setHour(H); keyMinus = 0;}
+        } break;
+
+        case 1:{
+          display.drawRect(24,40,76,15,WHITE);
+            if(keyPlus) { M++; if(M > 59) {M = 0;} setRTC.setMinute(M); setRTC.setSecond(0); keyPlus = 0;}
+            else if(keyMinus) { M--; if(M < 0) {M = 59;} setRTC.setMinute(M); setRTC.setSecond(0); keyMinus = 0;}         
+        } break;
+      }
+
+    } break;
+
+    case 2:{
+
+    } break;
 
   }
 
   display.display();
-}//SP//100=32// 10=42// 1=52
+}
 
 void lDispUpd(){ 
   dl.clearDisplay();
   dl.setFont(); dl.setCursor(110,13); dl.print("th");
-  dl.setFont(&FreeSans18pt7b); dl.setCursor(0,42); dl.print(Taho()); 
+  dl.setFont(&digits18pt7b); dl.setCursor(0,44); dl.print(sp,1); 
     dl.display(); 
 }
 
 void rDispUpd(){
-  DateTime now = myRTC.now();
+  
   dr.clearDisplay();
-  if(now.hour() < 10) { dr.setCursor(6,44); dr.println("0"); dr.setCursor(32,44); dr.print(now.hour()); }
-    else { dr.setCursor(6,44); dr.print(now.hour()); }
-  if(now.minute() < 10) { dr.setCursor(70,44); dr.println("0"); dr.setCursor(96,44); dr.print(now.minute()); }
-    else { dr.setCursor(70,44); dr.print(now.minute()); }
-  if(clock2dot == 0) { dr.fillRect(62, 19, 4,6,WHITE); dr.fillRect(62, 34, 4,6,WHITE); } 
-  dr.display();
+  DateTime now = myRTC.now();
+
+  int H = now.hour();
+    if(H < 10) { dr.setCursor(12,44); dr.print("0"); dr.setCursor(36,44); }
+    else { dr.setCursor(12,44);}
+    dr.print(H);  
+
+  int M = now.minute();
+    if(M < 10) { dr.setCursor(75,44); dr.print("0"); dr.setCursor(99,44); }
+    else { dr.setCursor(76,44); }
+    dr.print(M); 
+
+  if(clock2dot) { dr.fillRect(62, 19, 4,6,WHITE); dr.fillRect(62, 34, 4,6,WHITE); } 
     clock2dot = !clock2dot;
+
+  dr.display();
 }
 
 void initDisplays() {
-  display.begin(SH1106_SWITCHCAPVCC);  display.clearDisplay(); display.setTextColor(WHITE);  display.display(); cDispUpd(); 
-  dl.begin(SH1106_SWITCHCAPVCC, 0x3C); dl.clearDisplay(); dl.display(); dl.setTextColor(WHITE); dl.setFont(&FreeSans24pt7b); lDispUpd();
-  dr.begin(SH1106_SWITCHCAPVCC, 0x3D); dr.clearDisplay(); dr.display(); dr.setTextColor(WHITE); dr.setFont(&FreeSans24pt7b); rDispUpd(); 
+  display.begin(SH1106_SWITCHCAPVCC);  display.setTextColor(WHITE); cDispUpd(); 
+  dl.begin(SH1106_SWITCHCAPVCC, 0x3C); dl.setTextColor(WHITE); dl.setFont(&digits18pt7b); lDispUpd();
+  dr.begin(SH1106_SWITCHCAPVCC, 0x3D); dr.setTextColor(WHITE); dr.setFont(&digits18pt7b); rDispUpd(); 
   
   DisplayST=1;
 }
@@ -113,6 +132,11 @@ void PrintMsgF(uint8_t x, uint8_t y, const char *msg){
       display.print(msg);
 }
 
+void PrintMsgN(uint8_t x, uint8_t y, uint16_t num){
+      display.setFont();
+      display.setCursor(x,y);
+      display.print(num);
+}
 
 void settime() {
    //setRTC.setClockMode(false);  // set to 24h
@@ -121,8 +145,8 @@ void settime() {
    //setRTC.setMonth(month);
    //setRTC.setDate(date);
    //setRTC.setDoW(dOW);
-   //setRTC.setHour(20);
-   //setRTC.setMinute(35);
+   setRTC.setHour(23);
+   setRTC.setMinute(9);
    //setRTC.setSecond(second);
 }
 

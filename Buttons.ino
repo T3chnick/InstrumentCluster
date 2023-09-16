@@ -1,18 +1,19 @@
 void CheckButt() {
-  ssButt.tick(); butt1.tick(); 
-  if (butt1.isClick()) { DispSubPage++;  } 
-
+  ssButt.tick(); buttR.tick(); 
+  if (buttR.isClick()) { DispSubPage++;  } 
   wkl(); wkr();
 }
-
 
 void wkl(void){ ///// Steering wheel left block /////
   uint16_t wkl = analogRead(wkL_pin);
   if(wkl>1000) {eventL=millis();
-         if(flagL == 2) { DispSubPage++; flagL = 0; cDispUpd(); }
-    else if(flagL == 4) { DispSubPage--; flagL = 0; cDispUpd(); }
-    else if(flagL == 5) { DispPage++; flagL = 0; cDispUpd(); }
-    else if(flagL == 6) { DispPage--; flagL = 0; cDispUpd(); }
+    if(flagL != 0) {
+           if(flagL == 2) { DispSubPage--; }
+      else if(flagL == 4) { DispSubPage++; }
+      else if(flagL == 5) { DispPage++; DispSubPage = 0; }
+      else if(flagL == 6) { DispPage--; DispSubPage = 0; }
+      cDispUpd(); flagL = 0; 
+    }    
   }
   else if(millis()-eventL > 10 ) {
          if(key(wkl,key1)) { flagL = 2; } //next
@@ -25,16 +26,21 @@ void wkl(void){ ///// Steering wheel left block /////
 void wkr(void){ ///// Steering wheel right block /////
  uint16_t wkr = analogRead(wkR_pin);
   if(wkr>=1000) { eventR=millis();
-         if(flagR == 1) { btCnt(btuppin, 100,0); } 
-    else if(flagR == 2) { btCnt(btdnpin, 100,0); } 
-    if(millis()-btKeyTime > btKeyDelay) {flagR = 0; pinMode(btuppin, INPUT); pinMode(btdnpin, INPUT);} 
+    if(flagR != 0) {
+           if(flagR == 1) { btCnt(btuppin, 200); } 
+      else if(flagR == 2) { btCnt(btdnpin, 200); } 
+      else if(flagR == 3) { keyPlus = 1; }
+      else if(flagR == 4) { keyMinus = 1; }
+      flagR = 0;
+    }
   } 
   else if(millis()-eventR > 10){
-         if(key(wkr,key1)) { btCnt(btuppin, 950,3); }
-    else if(key(wkr,key4)) { btCnt(btdnpin, 950,3); }
-    else if(key(wkr,key2) && !flagR) { flagR = 1; } 
-    else if(key(wkr,key3) && !flagR) { flagR = 2; } 
-  }   
+         if(key(wkr,key1)) { if(!VolButtBusy) {btCnt(btuppin, 950); } else { flagR = 3; }}
+    else if(key(wkr,key4)) { if(!VolButtBusy) {btCnt(btdnpin, 950); } else { flagR = 4; }}
+    else if(key(wkr,key2)) { flagR = 1; } 
+    else if(key(wkr,key3)) { flagR = 2; } 
+  } 
+  if(millis()-btKeyTime > btKeyDelay) {  pinMode(btuppin, INPUT); pinMode(btdnpin, INPUT); }   
 }
 
 bool key(uint16_t Val,uint16_t keyVal){
@@ -42,22 +48,18 @@ bool key(uint16_t Val,uint16_t keyVal){
 }
 
 
-void btCnt(uint8_t pin, uint32_t delay,uint8_t flag) {
+void btCnt(uint8_t pin, uint32_t delay) {
   pinMode(pin, OUTPUT); 
   digitalWrite(pin,LOW); 
-  if(!flagR) { btKeyTime = millis();} 
-  flagR = flag;  
+  if(flagR<3) { btKeyTime = millis(); flagR = 5;} 
   btKeyDelay = delay;
 }
 
 void SetupButtons() {
-  butt1.setDebounce(20);         // настройка антидребезга (по умолчанию 80 мс)
-  butt1.setTimeout(1000);        // настройка таймаута на удержание (по умолчанию 500 мс)
-  butt1.setClickTimeout(600);    // настройка таймаута между кликами (по умолчанию 300 мс)
-  butt1.setType(HIGH_PULL);
-  butt1.setDirection(NORM_OPEN);
+  buttR.setDebounce(20);         // настройка антидребезга (по умолчанию 80 мс)
+  buttR.setTimeout(1000);        // настройка таймаута на удержание (по умолчанию 500 мс)
+  buttR.setClickTimeout(600);    // настройка таймаута между кликами (по умолчанию 300 мс)
+  buttR.setType(HIGH_PULL);
+  buttR.setDirection(NORM_OPEN);
   pinMode(53, INPUT_PULLUP);
- // pinMode(btuppin, OUTPUT);
- // pinMode(btdnpin, OUTPUT);
-
 }
