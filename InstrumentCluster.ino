@@ -60,9 +60,9 @@ volatile float SpAvg[20], trip;
 volatile uint8_t saveSpeedPos;
 
 //StartStop routines 
-uint32_t lastWork, StarterTime;      
+uint32_t holdACCtime, lastWork, StarterTime;      
 uint8_t  statusEngine;  
-bool     cLock, stateIgn, stateACC; 
+bool     cLock, stateIgn, holdACC, stateACC; 
 #define TrunkPin      22       //-->выход на багажник
 #define ClosePin      23       //-->выход на цз
 #define DoorPin       50       //<--Вход с концевика двери
@@ -82,8 +82,7 @@ GButton ssButt(SSButtPin);
 Servo CCservo; 
 float CCTargetSp, PreviousSpeed;
 uint8_t throttle, CCstatus;
-float   diff_H=3.0, diff_M=1.5, diff_L=0.5, 
-uint8_t react_H=3, react_M=2, react_L=1;
+float   CC_Kp=3.0, CC_Ki=0.5, CC_Kd=0.0; 
 #define CCservoPin    32 
 #define CCkeyPin      A2
 #define accel  1

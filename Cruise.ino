@@ -27,18 +27,8 @@ void ComputeCC(){
 
   float CurrSpeed = Speed();
 
-  if(CurrSpeed < CCTargetSp){
-         if(CurrSpeed < (CCTargetSp - diff_H)) { throttle += react_H; }
-    else if(CurrSpeed < (CCTargetSp - diff_M)) { throttle += react_M; }
-    else if(CurrSpeed < (CCTargetSp - diff_L)) { throttle += react_L; }
-    else { }
-  }
-  else if(CurrSpeed > CCTargetSp){
-         if(CurrSpeed > (CCTargetSp + diff_H)) { throttle -= react_H; }
-    else if(CurrSpeed > (CCTargetSp + diff_M)) { throttle -= react_M; }
-    else if(CurrSpeed > (CCTargetSp + diff_L)) { throttle -= react_L; }
-    else { }
-  }
+
+  
 
   throttle = constrain(throttle, 0, 150);
   CCservo.write(throttle);

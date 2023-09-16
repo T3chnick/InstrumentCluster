@@ -1,8 +1,9 @@
 
 void UpdDisplays() { if(!DisplayST) {initDisplays();}
+  if (millis()-cDispTimer > cDispInterval) { cDispUpd(); cDispTimer=millis(); }
   if (millis()-lDispTimer > 200) { lDispUpd(); lDispTimer=millis(); }
   if (millis()-rDispTimer > 1000) { rDispUpd(); rDispTimer=millis(); }
-  if (millis()-cDispTimer > cDispInterval) { cDispUpd(); cDispTimer=millis(); }
+  
 
 }
 void cDispUpd(){ 
@@ -47,27 +48,44 @@ void cDispUpd(){
 
 
 
-    case 1:{  SubPageMax = 1;  VolButtBusy = 1;  cDispInterval = 100;//set clock
-      PrintMsgF(35,11,"SET CLOCK");
+    case 1:{  SubPageMax = 4;  VolButtBusy = 1;  cDispInterval = 100;//set clock
+      PrintMsgF(35,11,"SETTINGS");
       DateTime now = myRTC.now();
       int H = now.hour();
       int M = now.minute();
-      PrintMsgF(30,28,"HOUR");  PrintMsgN(83,28,H);
-      PrintMsgF(30,44,"MINUTE"); PrintMsgN(83,44,M);
-
+      
       switch(DispSubPage) {
         
-        case 0:{
-          display.drawRect(24,24,76,15,WHITE);
-            if(keyPlus) { H++; if(H > 23) {H = 0;} setRTC.setHour(H); keyPlus = 0;}
-            else if(keyMinus) { H--; if(H < 0) {H = 23;} setRTC.setHour(H); keyMinus = 0;}
+        case 0:{ PrintCC();
+          display.drawRect(24,20,76,15,WHITE);
+          if(keyPlus) {CC_Kp += 0.1;}
+          else if(keyMinus) {CC_Kp -= 0.1;}
+        } break;
+        
+        case 1:{ PrintCC();
+          display.drawRect(24,34,76,15,WHITE);
+          if(keyPlus) {CC_Ki += 0.1;}
+          else if(keyMinus) {CC_Ki -= 0.1;}
+        } break;
+        
+        case 2:{ PrintCC();
+          display.drawRect(24,48,76,15,WHITE);
+          if(keyPlus) {CC_Kd += 0.1;}
+          else if(keyMinus) {CC_Kd -= 0.1;}
         } break;
 
-        case 1:{
-          display.drawRect(24,40,76,15,WHITE);
-            if(keyPlus) { M++; if(M > 59) {M = 0;} setRTC.setMinute(M); setRTC.setSecond(0); keyPlus = 0;}
-            else if(keyMinus) { M--; if(M < 0) {M = 59;} setRTC.setMinute(M); setRTC.setSecond(0); keyMinus = 0;}         
+        case 3:{ PrintClock(H,M);
+          display.drawRect(24,24,76,15,WHITE);
+            if(keyPlus) { H++; if(H > 23) {H = 0;} setRTC.setHour(H);}
+            else if(keyMinus) { H--; if(H < 0) {H = 23;} setRTC.setHour(H); }
         } break;
+
+        case 4:{ PrintClock(H,M);
+          display.drawRect(24,40,76,15,WHITE);
+            if(keyPlus) { M++; if(M > 59) {M = 0;} setRTC.setMinute(M); setRTC.setSecond(0); }
+            else if(keyMinus) { M--; if(M < 0) {M = 59;} setRTC.setMinute(M); setRTC.setSecond(0); }         
+        } break;
+
       }
 
     } break;
@@ -77,7 +95,7 @@ void cDispUpd(){
     } break;
 
   }
-
+  keyPlus = 0; keyMinus = 0;
   display.display();
 }
 
@@ -124,6 +142,18 @@ void DisplaysOFF() {
   display.clearDisplay(); display.display();
   eeprom.eeprom_write(0, odometrPulses);
   DisplayST=0;
+}
+
+void PrintClock(int H, int M){
+  PrintMsgF(30,28,"HOUR");  PrintMsgN(83,28,H);
+  PrintMsgF(30,44,"MINUTE"); PrintMsgN(83,44,M);
+}
+
+void PrintCC(){
+  PrintMsgF(30,22,"CC_Kp"); PrintMsgN(83,22,CC_Kp);
+  PrintMsgF(30,36,"CC_Ki"); PrintMsgN(83,36,CC_Ki);
+  PrintMsgF(30,50,"CC_Kd"); PrintMsgN(83,50,CC_Kd);
+
 }
 
 void PrintMsgF(uint8_t x, uint8_t y, const char *msg){
