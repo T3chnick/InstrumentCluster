@@ -2,7 +2,7 @@
 void UpdDisplays() {
   if (!DisplayST) { initDisplays(); }
   if (millis() - cDispTimer > cDispInterval) { UpdKM(); cDispUpd(); cDispTimer = millis(); }
-  if (millis() - lDispTimer > 200) { lDispUpd(); lDispTimer = millis(); }
+  if (millis() - lDispTimer > 400) { lDispUpd(); lDispTimer = millis(); }
   if (millis() - rDispTimer > 1000) { rDispUpd(); rDispTimer = millis(); }
 }
 void cDispUpd() {
@@ -11,12 +11,10 @@ void cDispUpd() {
   c.clearDisplay();
 
   switch (DispPage) {
-
-    case 0: { SubPageMax = 3; VolButtBusy = 0;
-    
+    case 0: { SubPageMax = 3; VolButtBusy = 0;  
         switch (DispSubPage) {
 
-          case 0: { cDispInterval = 500;  // odometr
+          case 0: { cDispInterval = 2000;  // odometr
               PrintMsgF(56, 31, "KM");
               c.setFont(&wwDigital8pt7b);
               c.setCursor(getXtrip(), 25);
@@ -34,7 +32,7 @@ void cDispUpd() {
               c.print(temSp, 0);
             } break;
 
-          case 2: { cDispInterval = 500;  //Service A
+          case 2: { cDispInterval = 1000;  //Service A
               PrintMsgF(37, 11, "SERVICE A");
               c.setFont(&wwDigital8pt7b);
               c.setCursor(43, 40);
@@ -43,7 +41,7 @@ void cDispUpd() {
               if (buttR.isHold()) { serviceAreset = odometr; SaveKm(); }
             } break;
 
-          case 3: { cDispInterval = 500;  // ServiceB
+          case 3: { cDispInterval = 1000;  // ServiceB
               PrintMsgF(37, 11, "SERVICE B");
               c.setFont(&wwDigital8pt7b);
               c.setCursor(43, 40);
@@ -106,18 +104,13 @@ void cDispUpd() {
             c.setCursor(26, 52);
             c.print("--.-");
             c.print(" L.100KM");
-
-          }
-          break;
-
-
+          }break;
         }
-      }
-      break;
+      }break;
 
 
-    case 2: { SubPageMax = 5; VolButtBusy = 1; cDispInterval = 100;  //set clock
-        PrintMsgF(38, 11, "SETTINGS");
+    case 2: { SubPageMax = 7; VolButtBusy = 1; cDispInterval = 10000;  //set clock
+        
         DateTime now = myRTC.now();
         int H = now.hour();
         int M = now.minute();
@@ -125,6 +118,7 @@ void cDispUpd() {
         switch (DispSubPage) {
          
           case 0: {
+            PrintMsgF(38, 11, "SETTINGS");
             PrintMsgF(4, 34, "PRESS DOWN TO ENTER");
           }
           break;
@@ -144,30 +138,41 @@ void cDispUpd() {
             } break;
 
           case 3: {
-              PrintCC();
-              c.drawRect(20, 20, 84, 13, WHITE); if (keyPlus) { CC_Kp += 0.1; saveCCpid(); } 
-              else if (keyMinus) { CC_Kp -= 0.1; saveCCpid(); }
+              PrintServiceSet();
+              c.drawRect(10, 24, 104, 15, WHITE);
+              if (keyPlus) { ServiceAinterval += 500; SaveIntervals(); } 
+              else if (keyMinus) { ServiceAinterval -= 500; SaveIntervals(); }
             } break;
 
           case 4: {
+              PrintServiceSet();
+              c.drawRect(10, 40, 104, 15, WHITE);
+              if (keyPlus) { ServiceBinterval += 500; SaveIntervals(); } 
+              else if (keyMinus) { ServiceBinterval -= 500; SaveIntervals(); }
+          } break;
+
+          case 5: {
+              PrintCC();
+              c.drawRect(20, 20, 84, 13, WHITE); if (keyPlus) { CC_Kp += 0.1; saveCCpid(); } 
+              else if (keyMinus) { CC_Kp -= 0.1; saveCCpid(); }
+          } break;
+
+          case 6: {
               PrintCC();
               c.drawRect(20, 33, 84, 13, WHITE);
               if (keyPlus) { CC_Ki += 0.02; saveCCpid(); } 
               else if (keyMinus) { CC_Ki -= 0.02; saveCCpid(); }
-            } break;
+          } break;
 
-          case 5: {
+          case 7: {
               PrintCC();
               c.drawRect(20, 46, 84, 13, WHITE);
               if (keyPlus) { CC_Kd += 0.01; saveCCpid();} 
               else if (keyMinus) {CC_Kd -= 0.01;saveCCpid();}
-            } break;
-
+          } break;
         }
       }
       break;
-
-
   }
   keyPlus = 0;
   keyMinus = 0;
@@ -176,12 +181,8 @@ void cDispUpd() {
 
 void lDispUpd() {
   dl.clearDisplay();
-  dl.setFont();
-  dl.setCursor(110, 13);
-  dl.print("th");
-  dl.setFont(&wwDigital24pt7b);
   dl.setCursor(0, 44);
-  dl.print(sp, 1);
+  dl.print(th);
   dl.display();
 }
 
@@ -219,40 +220,22 @@ void rDispUpd() {
   dr.display();
 }
 
-void initDisplays() {
-  c.begin(SH1106_SWITCHCAPVCC);
-  c.setTextColor(WHITE);
-  cDispUpd();
-  dl.begin(SH1106_SWITCHCAPVCC, 0x3C);
-  dl.setTextColor(WHITE);
-  dl.setFont(&wwDigital24pt7b);
-  lDispUpd();
-  dr.begin(SH1106_SWITCHCAPVCC, 0x3D);
-  dr.setTextColor(WHITE);
-  dr.setFont(&wwDigital24pt7b);
-  rDispUpd();
-
-  DisplayST = 1;
-}
-
-void DisplaysOFF() {
-
-  dl.clearDisplay();
-  dl.display();
-  dr.clearDisplay();
-  dr.display();
-  c.clearDisplay();
-  c.display();
-  eeprom.eeprom_write(0, odometrPulses);
-  DisplayST = 0;
-}
 
 void PrintClock(int H, int M) {
+  PrintMsgF(36, 11, "SET CLOCK");
   PrintMsgF(30, 28, "HOUR"); PrintMsgN(83, 28, H);
   PrintMsgF(30, 44, "MINUTE"); PrintMsgN(83, 44, M);
 }
 
+void PrintServiceSet(){
+  PrintMsgF(36, 11, "INTERVALS");
+  PrintMsgF(13, 28, "ServiceA"); PrintMsgN(82, 28, ServiceAinterval);
+  PrintMsgF(13, 44, "ServiceB"); PrintMsgN(82, 44, ServiceBinterval);
+
+}
+
 void PrintCC() {
+  PrintMsgF(38, 11, "CC SETUP");
   PrintMsgF(23, 23, "CC_Kp");
   if (CC_Kp < 10) {
     PrintMsgFl(78, 23, CC_Kp, 2);
@@ -282,6 +265,35 @@ void PrintMsgFl(uint8_t x, uint8_t y, float num, uint8_t d) {
   c.setCursor(x, y);
   c.print(num, d);
 }
+
+void initDisplays() {
+  c.begin(SH1106_SWITCHCAPVCC);
+  c.setTextColor(WHITE);
+  cDispUpd();
+  dl.begin(SH1106_SWITCHCAPVCC, 0x3C);
+  dl.setTextColor(WHITE);
+  dl.setFont(&wwDigital24pt7b);
+  lDispUpd();
+  dr.begin(SH1106_SWITCHCAPVCC, 0x3D);
+  dr.setTextColor(WHITE);
+  dr.setFont(&wwDigital24pt7b);
+  rDispUpd();
+
+  DisplayST = 1;
+}
+
+void DisplaysOFF() {
+
+  dl.clearDisplay();
+  dl.display();
+  dr.clearDisplay();
+  dr.display();
+  c.clearDisplay();
+  c.display();
+  eeprom.eeprom_write(0, odometrPulses);
+  DisplayST = 0;
+}
+
 
 void settime() {
   //setRTC.setClockMode(false);  // set to 24h

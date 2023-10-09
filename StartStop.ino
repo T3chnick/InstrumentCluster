@@ -9,12 +9,11 @@ void ControlStartStop(void) {
       if (cLock) { StopAll(); break; }
       if (ssButt.isSingle()) { if (Clutch) { StartStarter();} else { StartACC();holdACC = 1; holdACCtime = millis(); statusEngine = 4; }}
       if (ssButt.isHolded()) { StartIgn(); statusEngine = 3; }
-      if (th > 300) { statusEngine = 2; StartACC(); }
     break;
       //----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
     case 1:  // Starter work
       if (th > 400) { StopStarter(); StartACC(); statusEngine = 2; }
-      if (ssButt.isSingle() || millis() - StarterTime > 9000 || !Clutch) { StopStarter(); statusEngine = 3; }
+      if (ssButt.isSingle() || millis() - StarterTime > 10000 || !Clutch) { StopStarter(); statusEngine = 3; }
     break;
     //----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
     case 2:  // Engine work
@@ -28,6 +27,7 @@ void ControlStartStop(void) {
       if (th > 300) { statusEngine = 2; StartACC(); }
       if (ssButt.isSingle()) { (Clutch) ? StartStarter() : StopAll(); }
       if (ssButt.isHolded()) { StopAll(); }
+      if (millis() - lastWork > 30000) { StopAll(); }
     break;
     //----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
     case 4:  //Engine off acc on
@@ -44,6 +44,7 @@ void SSButtLed() {
 
 void StartIgn(void) {
   digitalWrite(IgnPin, HIGH);
+  lastWork = millis();
   stateIgn = 1;
 }
 

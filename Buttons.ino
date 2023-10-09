@@ -1,7 +1,7 @@
 void CheckButt() {
   ssButt.tick();
   buttR.tick();
-  if (buttR.isClick()) { DispSubPage++; }
+  if (buttR.isClick()) { DispSubPage++; updTimer = millis(); cDispUpd(); }
   wkl();
   wkr();
 }
@@ -17,7 +17,7 @@ void wkl(void) {  ///// Steering wheel left block /////
       cDispUpd();
       flagL = 0;
     }
-  } else if (millis() - eventL > 10) {
+  } else if (millis() - eventL > 25) { updTimer = millis();
     if (key(wkl, key1)) { flagL = 2; }  //next
     else if (key(wkl, key2)) { flagL = 4; }                                        //prev
     else if (key(wkl, key3)) { flagL = 5; }  //nav
@@ -31,15 +31,15 @@ void wkr(void) {  ///// Steering wheel right block /////
     if (flagR != 0) { 
            if (flagR == 1) { btCnt(btuppin, 200); } 
       else if (flagR == 2) { btCnt(btdnpin, 200); }
-      else if (flagR == 3) { keyPlus = 1; } 
-      else if (flagR == 4) { keyMinus = 1;}
+      else if (flagR == 3) { keyPlus = 1; cDispUpd();} 
+      else if (flagR == 4) { keyMinus = 1;cDispUpd();}
       flagR = 0;
     }
     if (millis() - btKeyTime > btKeyDelay) {
       pinMode(btuppin, INPUT);
       pinMode(btdnpin, INPUT);
     }
-  } else if (millis() - eventR > 10) {
+  } else if (millis() - eventR > 10) { updTimer = millis();
          if (key(wkr, key1)) { if (!VolButtBusy) { btCnt(btuppin, 950); } else { flagR = 3; }} 
     else if (key(wkr, key4)) { if (!VolButtBusy) { btCnt(btdnpin, 950); } else { flagR = 4; }} 
     else if (key(wkr, key2)) { flagR = 1; } 

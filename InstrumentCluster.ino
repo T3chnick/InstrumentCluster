@@ -27,7 +27,7 @@ Adafruit_SH1106 c(4, 6, 5);
 bool DisplayST;
 int8_t DispPage = 0, DispSubPage, SubPageMax = 10;
 uint16_t cDispInterval;
-uint32_t lDispTimer, cDispTimer, rDispTimer;
+uint32_t lDispTimer, cDispTimer, rDispTimer, updTimer;
 
 //Analog buttons routines//
 #define wkL_pin A1  // input from left key block on steering wheel
@@ -100,7 +100,7 @@ uint32_t btKeyTime, btKeyDelay;
 //odometrPulses = 11638450000;
 
 void setup() {
-  Wire.begin();  //settime();
+  Wire.begin();  //SaveIntervals();//settime();
   ReadEEprom();
   afStartTime = 1;
   afStartReset = odometrPulses;
@@ -116,17 +116,17 @@ void setup() {
 
 void loop() {
 
+  CheckButt();
 
-
-//  if (digitalRead(9) || !digitalRead(DoorPin)) {
-    ControlStartStop();
-    CheckButt();
-    UpdDisplays();
+  if (digitalRead(9) || !digitalRead(DoorPin)) {
+    updTimer = millis();  
     if (millis() - EEtime > 120000) { SaveKm(); EEtime = millis(); }
-//  } 
-//  else { if (DisplayST) { DisplaysOFF();}
-    if (millis() - EEtime > 1800000) {afStartTime = 1; afStartReset = odometrPulses;}
-//    }
+  } 
+
+    if (millis() - updTimer < 30000) {UpdDisplays();}
+    else if( DisplayST) { DisplaysOFF();}
+    if (millis() - updTimer > 10800000) {afStartTime = 1; afStartReset = odometrPulses;}
+
 
 
   ResSpThCount();
