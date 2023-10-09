@@ -42,13 +42,15 @@ uint8_t getXtrip() {
 uint8_t getXsp(float data) {
   uint8_t xpos;
   if (data < 9.50) {
-    xpos = 52;
+    xpos = 48;
   } else if (data < 19.50) {
-    xpos = 35;
+    xpos = 27;
   } else if (data < 99.50) {
-    xpos = 42;
+    xpos = 34;
+  } else if (data < 199.50) {
+    xpos = 13;
   } else {
-    xpos = 23;
+    xpos = 19;
   }
   return (xpos);
 }
@@ -64,8 +66,15 @@ void ResSpThCount() {
 void UpdKM() {
   odometr = odometrPulses / 24000;
   trip = (odometrPulses - tripreset) / 24000.0;
+  afStart = (odometrPulses - afStartReset) / 24000.0;
   ServiceA = (ServiceAinterval - (odometr - serviceAreset));
   ServiceB = (ServiceBinterval - (odometr - serviceBreset));
+  if( millis() - driveTcount < 2000  && th > 0 ) {
+    uint32_t count = millis() - driveTcount;
+    tripTime += count;
+    afStartTime += count;
+  }
+  driveTcount = millis();
 }
 
 void SetInterrupts() {

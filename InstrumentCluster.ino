@@ -16,15 +16,16 @@ bool clock2dot;
 // Display routines //
 #include <Adafruit_GFX.h>
 #include <Adafruit_SH1106.h>
-#include <fonts/Seven_Segment9pt7b.h>
+#include <fonts/wwDigital24pt7b.h>
+#include <fonts/wwDigital8pt7b.h>
 #include <fonts/digits18pt7b.h>
 #include <fonts/FreeSans18pt7b.h>
 #include <fonts/FreeSans24pt7b.h>
 Adafruit_SH1106 dl(-1);
 Adafruit_SH1106 dr(-1);
-Adafruit_SH1106 display(4, 6, 5);
+Adafruit_SH1106 c(4, 6, 5);
 bool DisplayST;
-int8_t DispPage, DispSubPage, SubPageMax = 10;
+int8_t DispPage = 0, DispSubPage, SubPageMax = 10;
 uint16_t cDispInterval;
 uint32_t lDispTimer, cDispTimer, rDispTimer;
 
@@ -54,9 +55,10 @@ volatile uint64_t sz = 0;         //counter
 volatile float sp = 0;            //Speed
 volatile bool st = false;         //trigger
 volatile uint64_t odometrPulses;
-volatile uint64_t tripreset;
-volatile int32_t odometr, ServiceA, ServiceB, serviceAreset, serviceBreset, ServiceAinterval = 5000, ServiceBinterval = 10000;
-volatile float SpAvg[20], trip;
+volatile uint64_t tripreset, afStartReset;
+volatile int32_t  ServiceA, ServiceB; 
+volatile uint32_t tripTime, afStartTime, driveTcount, odometr, serviceAreset, serviceBreset, ServiceAinterval = 5000, ServiceBinterval = 10000;
+volatile float SpAvg[20], afStart, trip;
 volatile uint8_t saveSpeedPos;
 
 //StartStop routines
@@ -100,26 +102,31 @@ uint32_t btKeyTime, btKeyDelay;
 void setup() {
   Wire.begin();  //settime();
   ReadEEprom();
+  afStartTime = 1;
+  afStartReset = odometrPulses;
   UpdKM();
   setupSSpins();
   initDisplays();
   SetupButtons();
   SetInterrupts();
   CCservo.attach(CCservoPin);
+
+
 }
 
 void loop() {
 
 
 
-  if (digitalRead(9) || !digitalRead(DoorPin)) {
+//  if (digitalRead(9) || !digitalRead(DoorPin)) {
     ControlStartStop();
-    UpdKM();
     CheckButt();
     UpdDisplays();
-    if (millis() - EEtime > 60000) { eeprom.eeprom_write(0, odometrPulses); EEtime = millis(); }
-  } 
-  else { if (DisplayST) { DisplaysOFF(); }}
+    if (millis() - EEtime > 120000) { SaveKm(); EEtime = millis(); }
+//  } 
+//  else { if (DisplayST) { DisplaysOFF();}
+    if (millis() - EEtime > 1800000) {afStartTime = 1; afStartReset = odometrPulses;}
+//    }
 
 
   ResSpThCount();
