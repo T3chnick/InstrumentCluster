@@ -37,21 +37,21 @@ void ControlStartStop(void) {
       else if (millis() - holdACCtime > (30 * (60 * 1000)) ) { StopAll(); }
     break;
   }
-}
+  }
 
 void SSButtLed() {
-}
+  }
 
 void StartIgn(void) {
   digitalWrite(IgnPin, HIGH);
   lastWork = millis();
   stateIgn = 1;
-}
+  }
 
 void StopIgn(void) {
   digitalWrite(IgnPin, LOW);
   stateIgn = 0;
-}
+  }
 
 void StopAll(void) {
   digitalWrite(IgnPin, LOW);
@@ -64,7 +64,7 @@ void StopAll(void) {
   holdACC = 0;
   stateIgn = 0;
   statusEngine = 0;
-}
+  }
 
 void StartStarter(void) {
   digitalWrite(ACCPin, LOW);
@@ -75,16 +75,16 @@ void StartStarter(void) {
     digitalWrite(StarterPin, HIGH);
     StarterTime = millis();
   }
-}
+  }
 
 void StopStarter(void) {
   digitalWrite(StarterPin, LOW);
-}
+  }
 
 void StartACC(void) {
   digitalWrite(ACCPin, HIGH);
   stateACC = 1;
-}
+  }
 
 void setupSSpins() {
   pinMode(SSButtPin, INPUT_PULLUP);
@@ -95,4 +95,4 @@ void setupSSpins() {
   pinMode(Wled, OUTPUT);
   pinMode(Yled, OUTPUT);
   pinMode(Gled, OUTPUT);
-}
+  }

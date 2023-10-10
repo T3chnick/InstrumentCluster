@@ -25,7 +25,7 @@ Adafruit_SH1106 dl(-1);
 Adafruit_SH1106 dr(-1);
 Adafruit_SH1106 c(4, 6, 5);
 bool DisplayST;
-int8_t DispPage = 0, DispSubPage, SubPageMax = 10;
+int8_t DispPage, DispSubPage, SubPageMax = 10;
 uint16_t cDispInterval;
 uint32_t lDispTimer, cDispTimer, rDispTimer, updTimer;
 
@@ -39,7 +39,8 @@ uint8_t avg = 10;   //
 #define key4 826    //analog value for resistive key
 #define btuppin 8
 #define btdnpin 7
-bool VolButtBusy, keyPlus, keyMinus;
+bool VolButtBusy; 
+uint8_t vKeyEvent;
 uint8_t flagL, flagR;     // Debounce function for key block on steering wheel
 uint32_t eventR, eventL;  // Timer for key block on steering wheel
 
@@ -48,6 +49,7 @@ volatile uint32_t micros_th = 0;  //pulse time
 volatile uint64_t tz = 0;         //counter
 volatile uint16_t th = 0;         //rpm
 volatile bool tt = false;         //trigger
+volatile uint64_t thPulses; 
 
 //Speed & km routines
 volatile uint32_t micros_sp = 0;  //pulse time
@@ -55,9 +57,9 @@ volatile uint64_t sz = 0;         //counter
 volatile float sp = 0;            //Speed
 volatile bool st = false;         //trigger
 volatile uint64_t odometrPulses;
-volatile uint64_t tripreset, afStartReset;
+volatile uint64_t tripreset, serviceAtime, afStartReset;
 volatile int32_t  ServiceA, ServiceB; 
-volatile uint32_t tripTime, afStartTime, driveTcount, odometr, serviceAreset, serviceBreset, ServiceAinterval = 5000, ServiceBinterval = 10000;
+volatile uint32_t tripTime, afStartTime, driveTcount, odometr, serviceAreset, serviceBreset, ServiceAinterval, ServiceBinterval;
 volatile float SpAvg[20], afStart, trip;
 volatile uint8_t saveSpeedPos;
 
@@ -102,6 +104,8 @@ uint32_t btKeyTime, btKeyDelay;
 void setup() {
   Wire.begin();  //SaveIntervals();//settime();
   ReadEEprom();
+  thPulses = 0;
+eeprom.eeprom_write(78, thPulses);
   afStartTime = 1;
   afStartReset = odometrPulses;
   UpdKM();
@@ -112,7 +116,7 @@ void setup() {
   CCservo.attach(CCservoPin);
 
 
-}
+  }
 
 void loop() {
 
@@ -130,4 +134,4 @@ void loop() {
 
 
   ResSpThCount();
-}
+  }

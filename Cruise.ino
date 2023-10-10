@@ -21,7 +21,7 @@ void CruiseControl(){
       break;
 
   }
-}
+  }
 
 void ComputeCC(){
 
@@ -34,4 +34,4 @@ void ComputeCC(){
   CCservo.write(throttle);
 
 
-}
+  }

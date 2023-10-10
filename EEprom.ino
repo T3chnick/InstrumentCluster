@@ -11,7 +11,10 @@ void ReadEEprom() {
 
   eeprom.eeprom_read(62, &ServiceAinterval);
   eeprom.eeprom_read(66, &ServiceBinterval);
-}
+
+  eeprom.eeprom_read(70, &serviceAtime);
+  eeprom.eeprom_read(78, &thPulses);
+  }
 
 void SaveKm() {
   eeprom.eeprom_write(0, odometrPulses);
@@ -19,14 +22,16 @@ void SaveKm() {
   eeprom.eeprom_write(20, serviceAreset);
   eeprom.eeprom_write(30, serviceBreset);
   eeprom.eeprom_write(40, tripTime);
-}
+  eeprom.eeprom_write(70, serviceAtime);
+  eeprom.eeprom_write(78, thPulses);
+  }
 
 void SaveIntervals() {
-  ServiceAinterval = constrain(ServiceAinterval,0,40000);
-  ServiceBinterval = constrain(ServiceBinterval,0,40000);
+  ServiceAinterval = constrain(ServiceAinterval, 0, 40000);
+  ServiceBinterval = constrain(ServiceBinterval, 0, 40000);
   eeprom.eeprom_write(62, ServiceAinterval);
   eeprom.eeprom_write(66, ServiceBinterval);
-}
+  }
 
 void saveCCpid() {
   CC_Kp = constrain(CC_Kp, 0.0, 30.0);
@@ -35,4 +40,4 @@ void saveCCpid() {
   eeprom.eeprom_write(54, CC_Ki);
   CC_Kd = constrain(CC_Kd, 0.0, 9.9);
   eeprom.eeprom_write(58, CC_Kd);
-}
+  }
