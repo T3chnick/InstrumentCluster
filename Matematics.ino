@@ -3,7 +3,7 @@ void tahometr(void) {  //измеряем частоту на входе тах�
   else { th = (30000000 / (micros() - micros_th)); }
   tt = !tt;
   tz = millis();
-  thPulses ++;
+  TH_Pulses ++;
   }
 
 void speedometr() {    //измеряем частоту на входе спидометра по прерыванию
@@ -11,7 +11,16 @@ void speedometr() {    //измеряем частоту на входе спи�
   else { sp = (150000.0 / (micros() - micros_sp)); SaveSp(); }
   st = !st;
   sz = millis();
-  odometrPulses++;
+  Odometr_Pulses++;
+  }
+
+void injON(){
+  microsInj = micros();
+  }
+
+void injOFF(){
+  injTime = (((micros() - microsInj) - 2000.0)/1000.0)*4;
+  if(injTime < 35) {af_Reset_Inj_Milis += injTime; af_Start_KM_Inj_Milis += injTime; }
   }
 
 void SaveSp() {
@@ -26,24 +35,24 @@ float Speed() {
   return (speed / 10);
   }
 
-uint8_t getXtrip() {
+uint8_t getXTrip_KM() {
   uint8_t xpos;  //1.0 = 50 // 10.0 = 46 // 100 = 42 // 1000 = 38 //
-  if (trip < 10.0) {
+  if (Trip_KM < 10.0) {
     xpos = 50;
   } 
-  else if (trip < 20.0) {
+  else if (Trip_KM < 20.0) {
     xpos = 43;
   } 
-  else if (trip < 100.0) {
+  else if (Trip_KM < 100.0) {
     xpos = 46;
   } 
-  else if (trip < 200.0) {
+  else if (Trip_KM < 200.0) {
     xpos = 39;
   }  
-  else if (trip < 1000.0) {
+  else if (Trip_KM < 1000.0) {
     xpos = 42;
   } 
-  else if (trip < 2000.0) {
+  else if (Trip_KM < 2000.0) {
     xpos = 34;
   } 
   else {
@@ -77,16 +86,16 @@ void ResSpThCount() {
   }
 
 void UpdKM() {
-  odometr = odometrPulses / 24000;
-  trip = (odometrPulses - tripreset) / 24000.0;
-  afStart = (odometrPulses - afStartReset) / 24000.0;
-  ServiceA = (ServiceAinterval - (odometr - serviceAreset));
-  ServiceB = (ServiceBinterval - (odometr - serviceBreset));
+  odometr = Odometr_Pulses / 24000;
+  Trip_KM = (Odometr_Pulses - Trip_KM_Reset) / 24000.0;
+  af_Start_KM = (Odometr_Pulses - af_Start_KM_Reset) / 24000.0;
+  Service_A_KM = (Service_A_interval - (odometr - service_A_reset));
+  Service_B_KM = (Service_B_interval - (odometr - service_B_reset));
   if( millis() - driveTcount < 2000 && th > 0 ) {
     uint32_t count = millis() - driveTcount;
-    tripTime += count;
-    afStartTime += count;
-    serviceAtime += count;
+    Trip_KM_Time += count;
+    af_Start_KM_Time += count;
+    service_A_time += count;
   }
   driveTcount = millis();
   }
@@ -94,4 +103,6 @@ void UpdKM() {
 void SetInterrupts() {
   attachInterrupt(51, tahometr, RISING);
   attachInterrupt(52, speedometr, RISING);
+  attachInterrupt(9, injON, FALLING);
+  attachInterrupt(9, injOFF, RISING);
   }

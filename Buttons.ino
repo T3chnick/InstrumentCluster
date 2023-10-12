@@ -1,7 +1,7 @@
 void CheckButt() {
   ssButt.tick();
   buttR.tick();
-  if (buttR.isClick()) { DispSubPage++; updTimer = millis(); cDispUpd(); }
+  if (buttR.isClick()) { Disp_Sub_Page++; updTimer = millis(); cDispUpd(); }
   wkl();
   wkr();
   }
@@ -10,11 +10,11 @@ void wkl(void) {  ///// Steering wheel left block /////
   uint16_t wkl = analogRead(wkL_pin);
   if (wkl > 1000) { eventL = millis();
     if (flagL) {
-           if (flagL == 2) { DispSubPage--; } 
-      else if (flagL == 4) { DispSubPage++; } 
-      else if (flagL == 5) { DispPage++; DispSubPage = 0; } 
-      else if (flagL == 6) { DispPage--; DispSubPage = 0; }
-      DispPage = constrain(DispPage, 0, 2);
+           if (flagL == 2) { Disp_Sub_Page--; } 
+      else if (flagL == 4) { Disp_Sub_Page++; } 
+      else if (flagL == 5) { Disp_Page++; Disp_Sub_Page = 0; } 
+      else if (flagL == 6) { Disp_Page--; Disp_Sub_Page = 0; }
+      Disp_Page = constrain(Disp_Page, 0, 2);
       cDispUpd();
       flagL = 0;
     }
@@ -32,7 +32,7 @@ void wkr(void) {  ///// Steering wheel right block /////
     if (flagR) { 
            if (flagR == 3) { btCnt(btuppin, 200); } 
       else if (flagR == 4) { btCnt(btdnpin, 200); }
-      else if (flagR == 1 || flagR == 2 ) { vKeyEvent = flagR; cDispUpd();} 
+      else if (flagR == 1 || flagR == 2 ) { v_Key_Event = flagR; cDispUpd();} 
       flagR = 0;
     }
     if (millis() - btKeyTime > btKeyDelay) {
@@ -40,8 +40,8 @@ void wkr(void) {  ///// Steering wheel right block /////
       pinMode(btdnpin, INPUT);
     }
   } else if (millis() - eventR > 10) { updTimer = millis();
-         if (key(wkr, key1)) { if(VolButtBusy) flagR = 1; else btCnt(btuppin, 950); }
-    else if (key(wkr, key4)) { if(VolButtBusy) flagR = 2; else btCnt(btdnpin, 950); }
+         if (key(wkr, key1)) { if(Vol_Butt_Busy) flagR = 1; else btCnt(btuppin, 950); }
+    else if (key(wkr, key4)) { if(Vol_Butt_Busy) flagR = 2; else btCnt(btdnpin, 950); }
     else if (key(wkr, key2)) { flagR = 3; } 
     else if (key(wkr, key3)) { flagR = 4; }
   }

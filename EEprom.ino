@@ -1,36 +1,41 @@
 void ReadEEprom() {
-  eeprom.eeprom_read(0, &odometrPulses);
-  eeprom.eeprom_read(10, &tripreset);
-  eeprom.eeprom_read(20, &serviceAreset);
-  eeprom.eeprom_read(30, &serviceBreset);
-  eeprom.eeprom_read(40, &tripTime);
+  eeprom.eeprom_read(0, &Odometr_Pulses);
+  eeprom.eeprom_read(10, &Trip_KM_Reset);
+  eeprom.eeprom_read(20, &service_A_reset);
+  eeprom.eeprom_read(30, &service_B_reset);
+  eeprom.eeprom_read(40, &Trip_KM_Time);
 
   eeprom.eeprom_read(50, &CC_Kp);
   eeprom.eeprom_read(54, &CC_Ki);
   eeprom.eeprom_read(58, &CC_Kd);
 
-  eeprom.eeprom_read(62, &ServiceAinterval);
-  eeprom.eeprom_read(66, &ServiceBinterval);
+  eeprom.eeprom_read(62, &Service_A_interval);
+  eeprom.eeprom_read(66, &Service_B_interval);
 
-  eeprom.eeprom_read(70, &serviceAtime);
-  eeprom.eeprom_read(78, &thPulses);
+  eeprom.eeprom_read(70, &service_A_time);
+  eeprom.eeprom_read(78, &TH_Pulses);
+  eeprom.eeprom_read(86, &af_Reset_Inj_Milis);
+  eeprom.eeprom_read(90, &Inj_Flow);
   }
 
 void SaveKm() {
-  eeprom.eeprom_write(0, odometrPulses);
-  eeprom.eeprom_write(10, tripreset);
-  eeprom.eeprom_write(20, serviceAreset);
-  eeprom.eeprom_write(30, serviceBreset);
-  eeprom.eeprom_write(40, tripTime);
-  eeprom.eeprom_write(70, serviceAtime);
-  eeprom.eeprom_write(78, thPulses);
+  eeprom.eeprom_write(0, Odometr_Pulses);
+  eeprom.eeprom_write(10, Trip_KM_Reset);
+  eeprom.eeprom_write(20, service_A_reset);
+  eeprom.eeprom_write(30, service_B_reset);
+  eeprom.eeprom_write(40, Trip_KM_Time);
+  eeprom.eeprom_write(70, service_A_time);
+  eeprom.eeprom_write(78, TH_Pulses);
+  eeprom.eeprom_write(86, af_Reset_Inj_Milis);
   }
 
 void SaveIntervals() {
-  ServiceAinterval = constrain(ServiceAinterval, 0, 40000);
-  ServiceBinterval = constrain(ServiceBinterval, 0, 40000);
-  eeprom.eeprom_write(62, ServiceAinterval);
-  eeprom.eeprom_write(66, ServiceBinterval);
+  Service_A_interval = constrain(Service_A_interval, 0, 40000);
+  Service_B_interval = constrain(Service_B_interval, 0, 40000);
+  eeprom.eeprom_write(62, Service_A_interval);
+  eeprom.eeprom_write(66, Service_B_interval);
+  Inj_Flow =  constrain(Inj_Flow, 0, 600);
+  eeprom.eeprom_write(90, Inj_Flow);
   }
 
 void saveCCpid() {

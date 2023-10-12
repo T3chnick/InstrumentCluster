@@ -17,16 +17,16 @@ bool clock2dot;
 #include <Adafruit_GFX.h>
 #include <Adafruit_SH1106.h>
 #include <fonts/wwDigital24pt7b.h>
+#include <fonts/wwDigital14pt7b.h>
 #include <fonts/wwDigital8pt7b.h>
-#include <fonts/digits18pt7b.h>
 #include <fonts/FreeSans18pt7b.h>
 #include <fonts/FreeSans24pt7b.h>
 Adafruit_SH1106 dl(-1);
 Adafruit_SH1106 dr(-1);
 Adafruit_SH1106 c(4, 6, 5);
 bool DisplayST;
-int8_t DispPage, DispSubPage, SubPageMax = 10;
-uint16_t cDispInterval;
+int8_t Disp_Page = 1, Disp_Sub_Page, Sub_Page_Max = 10;
+uint16_t c_Disp_Interval;
 uint32_t lDispTimer, cDispTimer, rDispTimer, updTimer;
 
 //Analog buttons routines//
@@ -39,8 +39,8 @@ uint8_t avg = 10;   //
 #define key4 826    //analog value for resistive key
 #define btuppin 8
 #define btdnpin 7
-bool VolButtBusy; 
-uint8_t vKeyEvent;
+bool Vol_Butt_Busy; 
+uint8_t v_Key_Event;
 uint8_t flagL, flagR;     // Debounce function for key block on steering wheel
 uint32_t eventR, eventL;  // Timer for key block on steering wheel
 
@@ -49,23 +49,35 @@ volatile uint32_t micros_th = 0;  //pulse time
 volatile uint64_t tz = 0;         //counter
 volatile uint16_t th = 0;         //rpm
 volatile bool tt = false;         //trigger
-volatile uint64_t thPulses; 
+volatile uint64_t TH_Pulses; 
 
 //Speed & km routines
 volatile uint32_t micros_sp = 0;  //pulse time
 volatile uint64_t sz = 0;         //counter
 volatile float sp = 0;            //Speed
 volatile bool st = false;         //trigger
-volatile uint64_t odometrPulses;
-volatile uint64_t tripreset, serviceAtime, afStartReset;
-volatile int32_t  ServiceA, ServiceB; 
-volatile uint32_t tripTime, afStartTime, driveTcount, odometr, serviceAreset, serviceBreset, ServiceAinterval, ServiceBinterval;
-volatile float SpAvg[20], afStart, trip;
+volatile uint64_t Odometr_Pulses;
+volatile int32_t  Service_A_KM, Service_B_KM, Service_A_interval, Service_B_interval;
+volatile uint32_t driveTcount, odometr, service_A_reset, service_B_reset, service_A_time, Service_B_KMtime;
+volatile float SpAvg[20], Trip_KM;
 volatile uint8_t saveSpeedPos;
+
+//After start routines
+uint32_t af_Start_KM_Time; 
+uint64_t af_Start_KM_Reset; 
+float af_Start_KM;
+volatile uint32_t af_Start_KM_Inj_Milis;
+
+//After reset routines
+uint32_t Trip_KM_Time;
+uint64_t Trip_KM_Reset;
+volatile float injTime, Inj_Flow = 115;
+volatile int32_t microsInj,  af_Reset_Inj_Milis;
+
 
 //StartStop routines
 uint32_t holdACCtime, lastWork, StarterTime;
-uint8_t statusEngine;
+uint8_t Engine_ST;
 bool cLock, stateIgn, holdACC, stateACC;
 #define TrunkPin 22    //-->выход на багажник
 #define ClosePin 23    //-->выход на цз
@@ -94,20 +106,16 @@ float CC_Kp = 9.0, CC_Ki = 0.5, CC_Kd = 0.0;
 #define cancel 1
 #define reset 1
 
-
-
 // other
 GButton buttR(53);
 uint32_t btKeyTime, btKeyDelay;
-//odometrPulses = 11638450000;
+//Odometr_Pulses = 11638450000;
 
 void setup() {
   Wire.begin();  //SaveIntervals();//settime();
   ReadEEprom();
-  thPulses = 0;
-eeprom.eeprom_write(78, thPulses);
-  afStartTime = 1;
-  afStartReset = odometrPulses;
+  af_Start_KM_Time = 1;
+  af_Start_KM_Reset = Odometr_Pulses;
   UpdKM();
   setupSSpins();
   initDisplays();
@@ -115,7 +123,7 @@ eeprom.eeprom_write(78, thPulses);
   SetInterrupts();
   CCservo.attach(CCservoPin);
 
-
+  
   }
 
 void loop() {
@@ -127,9 +135,9 @@ void loop() {
     if (millis() - EEtime > 120000) { SaveKm(); EEtime = millis(); }
   } 
 
-    if (millis() - updTimer < 30000) {UpdDisplays();}
+    if (millis() - updTimer < 10000) {UpdDisplays();}
     else if( DisplayST) { DisplaysOFF();}
-    if (millis() - updTimer > 10800000) {afStartTime = 1; afStartReset = odometrPulses;}
+    if (millis() - updTimer > 10800000) {af_Start_KM_Time = 1; af_Start_KM_Reset = Odometr_Pulses; af_Start_KM_Inj_Milis = 0;}
 
 
 

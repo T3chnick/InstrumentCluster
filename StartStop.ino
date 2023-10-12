@@ -3,28 +3,28 @@ void ControlStartStop(void) {
   bool Clutch = digitalRead(BrakePin);
   bool Door = !digitalRead(DoorPin);
 
-  switch (statusEngine) {
+  switch (Engine_ST) {
 
     case 0:  //acc and ign switch || start
       if (cLock) { StopAll(); break; }
-      if (ssButt.isSingle()) { if (Clutch) { StartStarter();} else { StartACC();holdACC = 1; holdACCtime = millis(); statusEngine = 4; }}
-      if (ssButt.isHolded()) { StartIgn(); statusEngine = 3; }
+      if (ssButt.isSingle()) { if (Clutch) { StartStarter();} else { StartACC();holdACC = 1; holdACCtime = millis(); Engine_ST = 4; }}
+      if (ssButt.isHolded()) { StartIgn(); Engine_ST = 3; }
     break;
       //----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
     case 1:  // Starter work
-      if (th > 400) { StopStarter(); StartACC(); statusEngine = 2; }
-      if (ssButt.isSingle() || millis() - StarterTime > 10000 || !Clutch) { StopStarter(); statusEngine = 3; }
+      if (th > 400) { StopStarter(); StartACC(); Engine_ST = 2; }
+      if (ssButt.isSingle() || millis() - StarterTime > 10000 || !Clutch) { StopStarter(); Engine_ST = 3; }
     break;
     //----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
     case 2:  // Engine work
       lastWork = millis();
-      if (th < 20) { statusEngine = 3; }
-      if (ssButt.isSingle()) { StopIgn(); statusEngine = 4; }
+      if (th < 20) { Engine_ST = 3; }
+      if (ssButt.isSingle()) { StopIgn(); Engine_ST = 4; }
       if (ssButt.isHolded()) { StopAll(); }
     break;
     //----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
     case 3:  // Work fail or Cancel starter
-      if (th > 300) { statusEngine = 2; StartACC(); }
+      if (th > 300) { Engine_ST = 2; StartACC(); }
       if (ssButt.isSingle()) { (Clutch) ? StartStarter() : StopAll(); }
       if (ssButt.isHolded()) { StopAll(); }
       if (millis() - lastWork > 30000) { StopAll(); }
@@ -36,7 +36,7 @@ void ControlStartStop(void) {
       if (!holdACC) { if (Door || millis() - lastWork > (20 * (60 * 1000))) { StopAll(); }} 
       else if (millis() - holdACCtime > (30 * (60 * 1000)) ) { StopAll(); }
     break;
-  }
+   }
   }
 
 void SSButtLed() {
@@ -63,14 +63,14 @@ void StopAll(void) {
   stateACC = 0;
   holdACC = 0;
   stateIgn = 0;
-  statusEngine = 0;
+  Engine_ST = 0;
   }
 
 void StartStarter(void) {
   digitalWrite(ACCPin, LOW);
   stateACC = 0;
   StartIgn();
-  statusEngine = 1;
+  Engine_ST = 1;
   if (th < 10) {
     digitalWrite(StarterPin, HIGH);
     StarterTime = millis();
