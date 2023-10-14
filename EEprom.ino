@@ -16,6 +16,8 @@ void ReadEEprom() {
   eeprom.eeprom_read(78, &TH_Pulses);
   eeprom.eeprom_read(86, &af_Reset_Inj_Milis);
   eeprom.eeprom_read(90, &Inj_Flow);
+  eeprom.eeprom_read(92, &avg);
+  eeprom.eeprom_read(93, &Engine_ST);
   }
 
 void SaveKm() {
@@ -38,11 +40,13 @@ void SaveIntervals() {
   eeprom.eeprom_write(90, Inj_Flow);
   }
 
-void saveCCpid() {
+void Save_Settings() {
   CC_Kp = constrain(CC_Kp, 0.0, 30.0);
   eeprom.eeprom_write(50, CC_Kp);
   CC_Ki = constrain(CC_Ki, 0.0, 9.9);
   eeprom.eeprom_write(54, CC_Ki);
   CC_Kd = constrain(CC_Kd, 0.0, 9.9);
   eeprom.eeprom_write(58, CC_Kd);
+  avg = constrain(avg,10,30);
+  eeprom.eeprom_write(92, avg);
   }

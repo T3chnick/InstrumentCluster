@@ -1,3 +1,10 @@
+#define SYSRESETREQ    (1<<2)
+#define VECTKEY        (0x05fa0000UL)
+#define VECTKEY_MASK   (0x0000ffffUL)
+#define AIRCR          (*(uint32_t*)0xe000ed0cUL) // fixed arch-defined address
+#define REQUEST_EXTERNAL_RESET (AIRCR=(AIRCR&VECTKEY_MASK)|VECTKEY|SYSRESETREQ)
+
+
 #include <Wire.h>
 #include <Adafruit_INA219.h>
 #include "uEEPROMLib.h"
@@ -24,15 +31,15 @@ bool clock2dot;
 Adafruit_SH1106 dl(-1);
 Adafruit_SH1106 dr(-1);
 Adafruit_SH1106 c(4, 6, 5);
-bool DisplayST;
-int8_t Disp_Page = 1, Disp_Sub_Page, Sub_Page_Max = 10;
+bool DisplayST, Msg;
+int8_t Disp_Page = 0, Disp_Sub_Page, Sub_Page_Max = 10;
 uint16_t c_Disp_Interval;
 uint32_t lDispTimer, cDispTimer, rDispTimer, updTimer;
 
 //Analog buttons routines//
 #define wkL_pin A1  // input from left key block on steering wheel
 #define wkR_pin A0  // input from right key block on steering wheel
-uint8_t avg = 10;   //
+uint8_t avg = 20;   //
 #define key1 526    //analog value for resistive key
 #define key2 693    //analog value for resistive key
 #define key3 780    //analog value for resistive key
@@ -40,8 +47,9 @@ uint8_t avg = 10;   //
 #define btuppin 8
 #define btdnpin 7
 bool Vol_Butt_Busy; 
-uint8_t v_Key_Event;
-uint8_t flagL, flagR;     // Debounce function for key block on steering wheel
+int8_t v_Key_Event;
+uint32_t v_Key_Event_Time;
+int8_t flagL, flagR;     // Debounce function for key block on steering wheel
 uint32_t eventR, eventL;  // Timer for key block on steering wheel
 
 //taho routines
@@ -70,8 +78,9 @@ volatile uint32_t af_Start_KM_Inj_Milis;
 
 //After reset routines
 uint32_t Trip_KM_Time;
+int16_t Inj_Flow = 115;
 uint64_t Trip_KM_Reset;
-volatile float injTime, Inj_Flow = 115;
+volatile float injTime; 
 volatile int32_t microsInj,  af_Reset_Inj_Milis;
 
 
@@ -106,14 +115,16 @@ float CC_Kp = 9.0, CC_Ki = 0.5, CC_Kd = 0.0;
 #define cancel 1
 #define reset 1
 
+int x;
 // other
 GButton buttR(53);
 uint32_t btKeyTime, btKeyDelay;
 //Odometr_Pulses = 11638450000;
 
 void setup() {
-  Wire.begin();  //SaveIntervals();//settime();
+  Wire.begin(); //SaveIntervals();//settime();
   ReadEEprom();
+  if(Engine_ST) {Engine_ST = 3; StartIgn();}
   af_Start_KM_Time = 1;
   af_Start_KM_Reset = Odometr_Pulses;
   UpdKM();
@@ -122,12 +133,13 @@ void setup() {
   SetupButtons();
   SetInterrupts();
   CCservo.attach(CCservoPin);
-
-  
+  Wire.setClock(800000);
+  //Serial.begin(115200);
   }
 
 void loop() {
-
+//if (x < 104) x++; else x=0;
+//volume_MSG();
   CheckButt();
 
   if (digitalRead(9) || !digitalRead(DoorPin)) {
@@ -139,7 +151,6 @@ void loop() {
     else if( DisplayST) { DisplaysOFF();}
     if (millis() - updTimer > 10800000) {af_Start_KM_Time = 1; af_Start_KM_Reset = Odometr_Pulses; af_Start_KM_Inj_Milis = 0;}
 
-
-
   ResSpThCount();
+//Serial.println(analogRead(wkL_pin));
   }

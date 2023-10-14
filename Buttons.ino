@@ -1,38 +1,35 @@
 void CheckButt() {
   ssButt.tick();
   buttR.tick();
-  if (buttR.isClick()) { Disp_Sub_Page++; updTimer = millis(); cDispUpd(); }
+  if (buttR.isClick()) { REQUEST_EXTERNAL_RESET;}// Disp_Sub_Page++; updTimer = millis(); cDispUpd(); }
   wkl();
   wkr();
   }
 
 void wkl(void) {  ///// Steering wheel left block /////
   uint16_t wkl = analogRead(wkL_pin);
-  if (wkl > 1000) { eventL = millis();
-    if (flagL) {
-           if (flagL == 2) { Disp_Sub_Page--; } 
-      else if (flagL == 4) { Disp_Sub_Page++; } 
-      else if (flagL == 5) { Disp_Page++; Disp_Sub_Page = 0; } 
-      else if (flagL == 6) { Disp_Page--; Disp_Sub_Page = 0; }
+  if (wkl > 880) { eventL = millis(); flagL = 0; }
+
+    else   if (millis() - eventL > 5 && !flagL) { updTimer = millis();
+           if (Msg) { Msg = 0; }
+      else if (key(wkl, key1)) { Disp_Sub_Page--; }  
+      else if (key(wkl, key2)) { Disp_Sub_Page++; }  
+      else if (key(wkl, key3)) { Disp_Page++; Disp_Sub_Page = 0; }  
+      else if (key(wkl, key4)) { Disp_Page--; Disp_Sub_Page = 0; } 
+      flagL = 1;
       Disp_Page = constrain(Disp_Page, 0, 2);
       cDispUpd();
-      flagL = 0;
-    }
-  } else if (millis() - eventL > 10 && !flagL) { updTimer = millis();
-         if (key(wkl, key1)) { flagL = 2; }  
-    else if (key(wkl, key2)) { flagL = 4; }  
-    else if (key(wkl, key3)) { flagL = 5; }  
-    else if (key(wkl, key4)) { flagL = 6; }  
-  }
-  }
+      }
+    else if (millis() - eventL > 300 ) { eventL = millis(); flagL = 0; } 
+  } 
+ 
 
 void wkr(void) {  ///// Steering wheel right block /////
   uint16_t wkr = analogRead(wkR_pin);
-  if (wkr > 1000) { eventR = millis();
+  if (wkr > 1000) { eventR = millis(); v_Key_Event_Time = 0;
     if (flagR) { 
            if (flagR == 3) { btCnt(btuppin, 200); } 
       else if (flagR == 4) { btCnt(btdnpin, 200); }
-      else if (flagR == 1 || flagR == 2 ) { v_Key_Event = flagR; cDispUpd();} 
       flagR = 0;
     }
     if (millis() - btKeyTime > btKeyDelay) {
@@ -40,10 +37,17 @@ void wkr(void) {  ///// Steering wheel right block /////
       pinMode(btdnpin, INPUT);
     }
   } else if (millis() - eventR > 10) { updTimer = millis();
-         if (key(wkr, key1)) { if(Vol_Butt_Busy) flagR = 1; else btCnt(btuppin, 950); }
-    else if (key(wkr, key4)) { if(Vol_Butt_Busy) flagR = 2; else btCnt(btdnpin, 950); }
+         if (key(wkr, key1)) { if(Vol_Butt_Busy) V_Key( 1); else btCnt(btuppin, 950); }
+    else if (key(wkr, key4)) { if(Vol_Butt_Busy) V_Key(-1); else btCnt(btdnpin, 950); }
     else if (key(wkr, key2)) { flagR = 3; } 
     else if (key(wkr, key3)) { flagR = 4; }
+  }
+  }
+
+void V_Key(int8_t x) {
+  if(millis() - v_Key_Event_Time > 150){
+    v_Key_Event = x; cDispUpd();
+    v_Key_Event_Time = millis(); 
   }
   }
 

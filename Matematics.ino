@@ -15,12 +15,15 @@ void speedometr() {    //измеряем частоту на входе спи�
   }
 
 void injON(){
-  microsInj = micros();
+  microsInj = micros() + 2000;
   }
 
 void injOFF(){
-  injTime = (((micros() - microsInj) - 2000.0)/1000.0)*4;
-  if(injTime < 35) {af_Reset_Inj_Milis += injTime; af_Start_KM_Inj_Milis += injTime; }
+  injTime = ((micros() - microsInj) /1000.0);
+  injTime = (injTime > 0 && injTime < 35) ? injTime*4 : 0 ;
+  af_Reset_Inj_Milis += injTime; 
+  af_Start_KM_Inj_Milis += injTime; 
+  
   }
 
 void SaveSp() {
@@ -103,6 +106,6 @@ void UpdKM() {
 void SetInterrupts() {
   attachInterrupt(51, tahometr, RISING);
   attachInterrupt(52, speedometr, RISING);
-  attachInterrupt(9, injON, FALLING);
-  attachInterrupt(9, injOFF, RISING);
+  //attachInterrupt(9, injON, FALLING);
+  //ttachInterrupt(9, injOFF, RISING);
   }
